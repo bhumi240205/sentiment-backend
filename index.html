@@ -47,9 +47,9 @@
 
     <script>
         async function analyzeSentiment() {
+            // 👇 YAHAN PASTE KAREIN (Naya URL)
             const BACKEND_URL = "https://sentiment-review-api-xzcz.onrender.com";
-            const text = document.getElementById('userText').value.trim();
-            const btn = document.getElementById('predictBtn');
+            
             const text = document.getElementById('userText').value.trim();
             const btn = document.getElementById('predictBtn');
             const loading = document.getElementById('loading');
@@ -69,7 +69,7 @@
 
             try {
                 // API Call
-                const response = await fetch('http://127.0.0.1:8000/predict', {
+                const response = await fetch(`${BACKEND_URL}/predict`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text })
@@ -109,7 +109,6 @@
                 loading.style.display = 'none';
             }
         }
-
- </script>
+    </script>
 </body>
 </html>

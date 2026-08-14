@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syncaura Sentiment Analyzer</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        textarea { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; resize: vertical; min-height: 150px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; margin-top: 15px; transition: background 0.3s; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { margin-top: 25px; padding: 20px; border-radius: 5px; display: none; }
+        .label { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 15px; }
+        .bar-container { background: #eee; border-radius: 10px; height: 30px; margin-bottom: 10px; overflow: hidden; }
+        .bar { height: 100%; transition: width 0.5s ease; }
+        .positive-bg { background: #28a745; }
+        .negative-bg { background: #dc3545; }
+        .neutral-bg { background: #6c757d; }
+        .confidence { text-align: center; font-size: 14px; color: #666; margin-top: 5px; }
+        .loading { text-align: center; color: #007bff; font-weight: bold; margin-top: 20px; display: none; }
+        .error { color: red; text-align: center; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Syncaura Sentiment Analyzer</h1>
+        <p style="text-align: center; color: #666;">Movie review ya feedback paste karein:</p>
+        
+        <textarea id="userText" placeholder="Example: This movie was absolutely terrible!"></textarea>
+        
+        <button id="predictBtn" onclick="analyzeSentiment()">Analyze Sentiment</button>
+        
+        <div id="loading" class="loading">Analyzing...</div>
+        <div id="error" class="error"></div>
+        
+        <div id="result" class="result">
+            <div id="label" class="label"></div>
+            <div id="positiveBar" class="bar-container"><div id="positiveBarFill" class="bar positive-bg" style="width: 0%"></div></div>
+            <div class="confidence" id="positiveConf"></div>
+            <div id="negativeBar" class="bar-container"><div id="negativeBarFill" class="bar negative-bg" style="width: 0%"></div></div>
+            <div class="confidence" id="negativeConf"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeSentiment() {
+            const text = document.getElementById('userText').value.trim();
+            const btn = document.getElementById('predictBtn');
+            const loading = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            
+            if (!text) {
+                alert("Please enter some text!");
+                return;
+            }
+
+            // UI Reset
+            btn.disabled = true;
+            loading.style.display = 'block';
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                // API Call
+                const response = await fetch('http://127.0.0.1:8000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) throw new Error("API error: " + response.statusText);
+                
+                const data = await response.json();
+                
+                // Update UI
+                const labelEl = document.getElementById('label');
+                const posBar = document.getElementById('positiveBarFill');
+                const negBar = document.getElementById('negativeBarFill');
+                const posConf = document.getElementById('positiveConf');
+                const negConf = document.getElementById('negativeConf');
+
+                labelEl.textContent = data.label;
+                labelEl.style.color = data.label === 'Positive' ? '#28a745' : '#dc3545';
+                
+                // Update Bars
+                const posScore = data.scores.Positive;
+                const negScore = data.scores.Negative;
+                
+                posBar.style.width = `${posScore * 100}%`;
+                negBar.style.width = `${negScore * 100}%`;
+                
+                posConf.textContent = `Positive Confidence: ${(posScore * 100).toFixed(1)}%`;
+                negConf.textContent = `Negative Confidence: ${(negScore * 100).toFixed(1)}%`;
+                
+                resultDiv.style.display = 'block';
+
+            } catch (err) {
+                errorDiv.textContent = "Error: Cannot connect to API. Ensure backend is running!";
+                errorDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -47,7 +47,7 @@
 
     <script>
         async function analyzeSentiment() {
-          
+            // 👇 YAHAN PASTE KAREIN (Naya URL)
             const BACKEND_URL = "https://sentiment-review-api-xzcz.onrender.com";
             
             const text = document.getElementById('userText').value.trim();
@@ -87,28 +87,4 @@
                 const negConf = document.getElementById('negativeConf');
 
                 labelEl.textContent = data.label;
-                labelEl.style.color = data.label === 'Positive' ? '#28a745' : '#dc3545';
-                
-                // Update Bars
-                const posScore = data.scores.Positive;
-                const negScore = data.scores.Negative;
-                
-                posBar.style.width = `${posScore * 100}%`;
-                negBar.style.width = `${negScore * 100}%`;
-                
-                posConf.textContent = `Positive Confidence: ${(posScore * 100).toFixed(1)}%`;
-                negConf.textContent = `Negative Confidence: ${(negScore * 100).toFixed(1)}%`;
-                
-                resultDiv.style.display = 'block';
-
-            } catch (err) {
-                errorDiv.textContent = "Error: Cannot connect to API. Ensure backend is running!";
-                errorDiv.style.display = 'block';
-            } finally {
-                btn.disabled = false;
-                loading.style.display = 'none';
-            }
-        }
-    </script>
-</body>
-</html>
+                labelEl.style.color = data.label

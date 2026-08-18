@@ -3,52 +3,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncaura Sentiment Analyzer</title>
+    <title>Syncaura - Sentiment Analysis AI</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; }
-        textarea { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; resize: vertical; min-height: 150px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; margin-top: 15px; transition: background 0.3s; }
-        button:hover { background: #0056b3; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .result { margin-top: 25px; padding: 20px; border-radius: 5px; display: none; }
-        .label { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 15px; }
-        .bar-container { background: #eee; border-radius: 10px; height: 30px; margin-bottom: 10px; overflow: hidden; }
-        .bar { height: 100%; transition: width 0.5s ease; }
-        .positive-bg { background: #28a745; }
-        .negative-bg { background: #dc3545; }
-        .neutral-bg { background: #6c757d; }
-        .confidence { text-align: center; font-size: 14px; color: #666; margin-top: 5px; }
-        .loading { text-align: center; color: #007bff; font-weight: bold; margin-top: 20px; display: none; }
-        .error { color: red; text-align: center; margin-top: 15px; display: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .main-container {
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #predictBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        #predictBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        #predictBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .clear-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .clear-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            border-left: 4px solid #c62828;
+        }
+        
+        .result {
+            margin-top: 30px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .sentiment-label {
+            font-size: 36px;
+            font-weight: 700;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            min-width: 200px;
+        }
+        
+        .sentiment-positive {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #2d5016;
+        }
+        
+        .sentiment-negative {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #6b2c2c;
+        }
+        
+        .confidence-section {
+            margin-top: 25px;
+        }
+        
+        .confidence-item {
+            margin-bottom: 20px;
+        }
+        
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .confidence-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.6s ease;
+            border-radius: 10px;
+        }
+        
+        .positive-fill {
+            background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%);
+        }
+        
+        .negative-fill {
+            background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .history-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .history-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .history-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .history-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+        
+        .history-item.positive {
+            border-left-color: #84fab0;
+        }
+        
+        .history-item.negative {
+            border-left-color: #fa709a;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎬 Syncaura Sentiment Analyzer</h1>
-        <p style="text-align: center; color: #666;">Movie review ya feedback paste karein:</p>
+    <div class="main-container">
+        <div class="header">
+            <h1>🎬 Syncaura</h1>
+            <p>AI-Powered Sentiment Analysis for Movie Reviews</p>
+        </div>
         
-        <textarea id="userText" placeholder="Example: This movie was absolutely terrible!"></textarea>
+        <div class="card">
+            <div class="input-section">
+                <label class="input-label">Enter Movie Review:</label>
+                <textarea id="userText" placeholder="Example: This movie was absolutely amazing! Best film of the year..."></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button id="predictBtn" onclick="analyzeSentiment()">Analyze Sentiment</button>
+                <button class="clear-btn" onclick="clearForm()">Clear</button>
+            </div>
+            
+            <div id="loading" class="loading">
+                <span class="spinner"></span>
+                Analyzing sentiment...
+            </div>
+            
+            <div id="error" class="error"></div>
+            
+            <div id="result" class="result">
+                <div class="result-header">
+                    <div id="label" class="sentiment-label"></div>
+                </div>
+                
+                <div class="confidence-section">
+                    <div class="confidence-item">
+                        <div class="confidence-label">
+                            <span>Positive Sentiment</span>
+                            <span id="positivePercent">0%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div id="positiveBarFill" class="confidence-fill positive-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="confidence-item">
+                        <div class="confidence-label">
+                            <span>Negative Sentiment</span>
+                            <span id="negativePercent">0%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div id="negativeBarFill" class="confidence-fill negative-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="historySection" class="history-section" style="display: none;">
+                <div class="history-title">📊 Recent Analysis</div>
+                <div id="historyList" class="history-list"></div>
+            </div>
+        </div>
         
-        <button id="predictBtn" onclick="analyzeSentiment()">Analyze Sentiment</button>
-        
-        <div id="loading" class="loading">Analyzing...</div>
-        <div id="error" class="error"></div>
-        
-        <div id="result" class="result">
-            <div id="label" class="label"></div>
-            <div id="positiveBar" class="bar-container"><div id="positiveBarFill" class="bar positive-bg" style="width: 0%"></div></div>
-            <div class="confidence" id="positiveConf"></div>
-            <div id="negativeBar" class="bar-container"><div id="negativeBarFill" class="bar negative-bg" style="width: 0%"></div></div>
-            <div class="confidence" id="negativeConf"></div>
+        <div class="footer">
+            <p>Powered by Machine Learning | Backend: Render | Frontend: Vercel</p>
         </div>
     </div>
 
     <script>
+        let analysisHistory = [];
+        
+        const BACKEND_URL = "https://sentiment-review-api-xxcz.onrender.com";
+        
         async function analyzeSentiment() {
-            const BACKEND_URL = "https://sentiment-review-api-xxcz.onrender.com";
-            
             const text = document.getElementById('userText').value.trim();
             const btn = document.getElementById('predictBtn');
             const loading = document.getElementById('loading');
@@ -56,7 +358,7 @@
             const errorDiv = document.getElementById('error');
             
             if (!text) {
-                alert("Please enter some text!");
+                alert("Please enter a review!");
                 return;
             }
 
@@ -72,39 +374,94 @@
                     body: JSON.stringify({ text: text })
                 });
 
-                if (!response.ok) throw new Error("API error: " + response.statusText);
+                if (!response.ok) throw new Error("API error");
                 
                 const data = await response.json();
-                
-                const labelEl = document.getElementById('label');
-                const posBar = document.getElementById('positiveBarFill');
-                const negBar = document.getElementById('negativeBarFill');
-                const posConf = document.getElementById('positiveConf');
-                const negConf = document.getElementById('negativeConf');
-
-                labelEl.textContent = data.label;
-                labelEl.style.color = data.label === 'Positive' ? '#28a745' : '#dc3545';
-                
-                const posScore = data.scores.Positive;
-                const negScore = data.scores.Negative;
-                
-                posBar.style.width = `${posScore * 100}%`;
-                negBar.style.width = `${negScore * 100}%`;
-                
-                posConf.textContent = `Positive Confidence: ${(posScore * 100).toFixed(1)}%`;
-                negConf.textContent = `Negative Confidence: ${(negScore * 100).toFixed(1)}%`;
-                
-                resultDiv.style.display = 'block';
+                displayResult(data, text);
+                addToHistory(data, text);
 
             } catch (err) {
-                console.error("Error:", err);
-                errorDiv.textContent = "Error: Cannot connect to API. Backend may be sleeping. Wait 1 minute and try again.";
+                errorDiv.textContent = "⚠️ Cannot connect to API. Backend may be sleeping. Wait 1 minute and try again.";
                 errorDiv.style.display = 'block';
             } finally {
                 btn.disabled = false;
                 loading.style.display = 'none';
             }
         }
+        
+        function displayResult(data, text) {
+            const labelEl = document.getElementById('label');
+            const posBar = document.getElementById('positiveBarFill');
+            const negBar = document.getElementById('negativeBarFill');
+            const posPercent = document.getElementById('positivePercent');
+            const negPercent = document.getElementById('negativePercent');
+            const resultDiv = document.getElementById('result');
+
+            labelEl.textContent = data.label;
+            labelEl.className = 'sentiment-label sentiment-' + data.label.toLowerCase();
+            
+            const posScore = data.scores.Positive;
+            const negScore = data.scores.Negative;
+            
+            posBar.style.width = `${posScore * 100}%`;
+            negBar.style.width = `${negScore * 100}%`;
+            
+            posPercent.textContent = `${(posScore * 100).toFixed(1)}%`;
+            negPercent.textContent = `${(negScore * 100).toFixed(1)}%`;
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        function addToHistory(data, text) {
+            const historyItem = {
+                text: text.substring(0, 30) + (text.length > 30 ? '...' : ''),
+                sentiment: data.label,
+                score: (data.scores[data.label] * 100).toFixed(1)
+            };
+            
+            analysisHistory.unshift(historyItem);
+            if (analysisHistory.length > 10) analysisHistory.pop();
+            
+            updateHistoryDisplay();
+        }
+        
+        function updateHistoryDisplay() {
+            const historySection = document.getElementById('historySection');
+            const historyList = document.getElementById('historyList');
+            
+            if (analysisHistory.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+            
+            historySection.style.display = 'block';
+            historyList.innerHTML = analysisHistory.map((item, idx) => `
+                <div class="history-item ${item.sentiment.toLowerCase()}" title="${item.text}">
+                    <strong>${item.sentiment}</strong><br>
+                    ${item.score}% confidence<br>
+                    <small>"${item.text}"</small>
+                </div>
+            `).join('');
+        }
+        
+        function clearForm() {
+            document.getElementById('userText').value = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('userText').focus();
+        }
     </script>
 </body>
 </html>
+
+    
+    
+    
+    
+    
+    
+
+    
+
+
+    

@@ -8,10 +8,8 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-import warnings
-warnings.filterwarnings('ignore')
 
-# Download NLTK data (first time only)
+# Download NLTK data
 try:
     nltk.data.find('tokenizers/punkt')
     nltk.data.find('corpora/stopwords')
@@ -23,26 +21,45 @@ except LookupError:
 
 print("Loading datasets...")
 
-# Load BOTH datasets
+# Load datasets
 df_2class = pd.read_csv('data.csv')
 df_3class = pd.read_csv('data_3class.csv')
 
 print(f"✅ 2-class dataset loaded: {len(df_2class)} rows")
 print(f"✅ 3-class dataset loaded: {len(df_3class)} rows")
 
-# Combine both datasets
-print("\nCombining datasets...")
-df_combined = pd.concat([df_2class, df_3class], ignore_index=True)
+# Standardize column names FIRST
+if 'review' in df_2class.columns:
+    df_2class.rename(columns={'review': 'text'}, inplace=True)
+if 'label' in df_2class.columns:
+    df_2class.rename(columns={'label': 'sentiment'}, inplace=True)
 
-# Clean text column names if needed
-if 'review' in df_combined.columns:
-    df_combined.rename(columns={'review': 'text'}, inplace=True)
-if 'label' in df_combined.columns:
-    df_combined.rename(columns={'label': 'sentiment'}, inplace=True)
+if 'review' in df_3class.columns:
+    df_3class.rename(columns={'review': 'text'}, inplace=True)
+if 'label' in df_3class.columns:
+    df_3class.rename(columns={'label': 'sentiment'}, inplace=True)
 
-# Display unique sentiments
-print("\nUnique sentiments in combined dataset:")
-print(df_combined['sentiment'].unique())
+# Create a NEW DataFrame with clean index from scratch
+print("\nBuilding combined dataset...")
+combined_text = []
+combined_sentiment = []
+
+# Add 2-class data
+combined_text.extend(df_2class['text'].tolist())
+combined_sentiment.extend(df_2class['sentiment'].tolist())
+
+# Add 3-class data
+combined_text.extend(df_3class['text'].tolist())
+combined_sentiment.extend(df_3class['sentiment'].tolist())
+
+# Create fresh DataFrame with automatic clean index
+df_combined = pd.DataFrame({
+    'text': combined_text,
+    'sentiment': combined_sentiment
+})
+
+print(f"✅ Combined dataset size: {len(df_combined)} rows")
+print("Unique sentiments:", df_combined['sentiment'].unique())
 
 # Clean text function
 stop_words = set(stopwords.words('english'))
@@ -59,18 +76,16 @@ def clean_text(text):
 print("\nCleaning text...")
 df_combined['clean_text'] = df_combined['text'].apply(clean_text)
 
-# Map sentiments to numbers (3 classes)
+# Map sentiments
 df_combined['sentiment_num'] = df_combined['sentiment'].map({
     'negative': 0,
     'neutral': 1,
     'positive': 2
 })
 
-# Remove rows with missing sentiment
 df_combined = df_combined.dropna(subset=['sentiment_num'])
 
-# Show class distribution
-print("\nClass distribution after combining:")
+print("\nClass distribution:")
 print(df_combined['sentiment_num'].value_counts().sort_index())
 
 # Split data

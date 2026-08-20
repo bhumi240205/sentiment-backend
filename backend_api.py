@@ -12,8 +12,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
+
 # Initialize FastAPI app
 app = FastAPI(title="Sentiment Analysis API")
+
 
 # CORS Configuration
 app.add_middleware(
@@ -23,6 +25,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Load NLTK data
 try:
@@ -34,13 +37,14 @@ except LookupError:
     nltk.download('stopwords')
     nltk.download('wordnet')
 
+
 # Auto-Train Model if not exists
 model_path = 'sentiment_model.pkl'
 if not os.path.exists(model_path):
-    print("⚠️ Model not found! Training on Render...")
+    print("⚠️ Model not found! Training on Render with 3-class data...")
     
-    # Load data (LIMIT TO 1000 ROWS FOR MEMORY)
-    df = pd.read_csv('data.csv').sample(n=1000, random_state=42)
+    # Load 3-CLASS dataset
+    df = pd.read_csv('data_3class.csv').sample(n=1000, random_state=42)
     
     # Clean data
     stop_words = set(stopwords.words('english'))
@@ -55,7 +59,8 @@ if not os.path.exists(model_path):
         return " ".join(tokens)
     
     df['clean_text'] = df['text'].apply(clean_text)
-    df['sentiment_num'] = df['sentiment'].map({'negative': 0, 'positive': 1})
+    # Map 3 classes
+    df['sentiment_num'] = df['sentiment'].map({'negative': 0, 'neutral': 1, 'positive': 2})
     df = df.dropna(subset=['sentiment_num'])
     
     # Train model
@@ -69,14 +74,16 @@ if not os.path.exists(model_path):
     
     # Save model
     joblib.dump(model, model_path)
-    print("✅ Model trained and saved!")
+    print("✅ Model trained and saved with 3 classes!")
 else:
     print("✅ Model already exists. Loading...")
     model = joblib.load(model_path)
 
+
 # Define the cleaning function
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
+
 
 def clean_text(text):
     if not isinstance(text, str): return ""
@@ -87,13 +94,16 @@ def clean_text(text):
     tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
     return " ".join(tokens)
 
+
 # Define Input/Output structure
 class TextRequest(BaseModel):
     text: str
 
+
 class SentimentResponse(BaseModel):
     label: str
     scores: dict
+
 
 # Create the Prediction Endpoint
 @app.post("/predict", response_model=SentimentResponse)
@@ -102,17 +112,20 @@ async def predict_sentiment(request: TextRequest):
         clean_input = clean_text(request.text)
         
         if not clean_input:
-            raise HTTPException(status_code=400, detail="Text is empty after cleaning.")
+            raise HTTPException(status_code=400, detail="Text is empty after preprocessing")
 
         prediction = model.predict([clean_input])[0]
         probabilities = model.predict_proba([clean_input])[0]
 
-        label_map = {0: "Negative", 1: "Positive"}
+        # ✅ UPDATED: 3-class mapping
+        label_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
         final_label = label_map[prediction]
 
+        # ✅ UPDATED: Include Neutral score
         scores = {
             "Negative": float(probabilities[0]),
-            "Positive": float(probabilities[1])
+            "Neutral": float(probabilities[1]),
+            "Positive": float(probabilities[2])
         }
 
         return {

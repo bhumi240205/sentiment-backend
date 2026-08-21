@@ -348,7 +348,7 @@
     <script>
         let analysisHistory = [];
         
-        const BACKEND_URL = "https://sentiment-review-api-xxcz.onrender.com/predict";
+        const BACKEND_URL = "https://sentiment-review-api-xxcz.onrender.com";
         
         async function analyzeSentiment() {
             const text = document.getElementById('userText').value.trim();
@@ -368,7 +368,7 @@
             errorDiv.style.display = 'none';
 
             try {
-                const response = await fetch(`${BACKEND_URL}`, {
+                const response = await fetch(`${BACKEND_URL}/predict`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text })
@@ -453,15 +453,3 @@
     </script>
 </body>
 </html>
-
-    
-    
-    
-    
-    
-    
-
-    
-
-
-    

@@ -37,7 +37,7 @@ except LookupError:
 # Auto-Train Model if not exists
 model_path = 'sentiment_model.pkl'
 if not os.path.exists(model_path):
-    print("⚠️ Model not found! Training on Render...")
+    print(" Model not found! Training on Render...")
     
     # Load data (LIMIT TO 1000 ROWS FOR MEMORY)
     df = pd.read_csv('data.csv').sample(n=1000, random_state=42)
@@ -69,9 +69,9 @@ if not os.path.exists(model_path):
     
     # Save model
     joblib.dump(model, model_path)
-    print("✅ Model trained and saved!")
+    print(" Model trained and saved!")
 else:
-    print("✅ Model already exists. Loading...")
+    print(" Model already exists. Loading...")
     model = joblib.load(model_path)
 
 # Define the cleaning function
